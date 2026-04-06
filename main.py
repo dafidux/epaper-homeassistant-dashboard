@@ -118,14 +118,14 @@ def pthread_irq():
 # -------------------- ARROW GEOMETRY --------------------
 # Touch sensor reports coords in portrait space internally.
 # Measured touch centers (from user testing):
-#   Left  arrow (bottom-left  physical): touch x=115, y=225
-#   Right arrow (bottom-right physical): touch x=115, y=10
+#   Left  arrow (top-left  physical button): touch x=115, y=0
+#   Right arrow (top-right physical button): touch x=30,  y=10
 # Hitbox is ±20px around each center.
 ARROW_HIT = 20   # half-size of the square hitbox around touch center
 
-# Touch centers in raw sensor coordinates
-ARROW_LEFT_TX,  ARROW_LEFT_TY  = 115, 225
-ARROW_RIGHT_TX, ARROW_RIGHT_TY = 115, 10
+# Touch centers in raw sensor coordinates (measured on device)
+ARROW_LEFT_TX,  ARROW_LEFT_TY  = 115, 0    # top-left physical button
+ARROW_RIGHT_TX, ARROW_RIGHT_TY = 30,  10   # top-right physical button
 
 # For drawing we map the arrows to the display corners.
 # Display is landscape 250×122; arrows drawn at the right edge, top and bottom corners.
