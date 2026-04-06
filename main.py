@@ -64,10 +64,10 @@ BUTTONS_PAGE2 = load_buttons("buttons2.json")  # up to 4 entries -> slots 0-3
 #   Slot 2 -> Button 3  (x: 20-60,  y: 160-200)  bottom-left
 #   Slot 3 -> Button 4  (x: 80-120, y: 160-200)  bottom-right
 TOUCH_REGIONS = [
-    (20,  60,  60, 100),   # slot 0 top-left
-    (80, 120,  60, 100),   # slot 1 top-right
-    (20,  60, 160, 200),   # slot 2 bottom-left
-    (80, 120, 160, 200),   # slot 3 bottom-right
+    (20,  60, 160, 200),   # slot 0 top-left
+    (20,  60,  60, 100),   # slot 1 top-right
+    (80, 120, 160, 200),   # slot 2 bottom-left
+    (80, 120,  60, 100),   # slot 3 bottom-right
 ]
 
 def button_hit(slot, tx, ty):
