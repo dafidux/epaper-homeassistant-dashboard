@@ -116,58 +116,85 @@ def pthread_irq():
             GT_Dev.Touch = 0
 
 # -------------------- ARROW GEOMETRY --------------------
-# The display is landscape: width=epd.height (250), height=epd.width (122)
-# Arrows sit in the bottom corners so they don't overlap button rows.
-# Each arrow hitbox is 36x36 px.
-ARROW_SIZE = 36   # square hitbox side
+# Touch sensor reports coords in portrait space internally.
+# Measured touch centers (from user testing):
+#   Left  arrow (bottom-left  physical): touch x=115, y=225
+#   Right arrow (bottom-right physical): touch x=115, y=10
+# Hitbox is ±20px around each center.
+ARROW_HIT = 20   # half-size of the square hitbox around touch center
 
-def arrow_left_bbox(W, H):
-    """Bottom-left corner arrow (go to previous screen)."""
-    return (0, H - ARROW_SIZE, ARROW_SIZE, H)
+# Touch centers in raw sensor coordinates
+ARROW_LEFT_TX,  ARROW_LEFT_TY  = 115, 225
+ARROW_RIGHT_TX, ARROW_RIGHT_TY = 115, 10
 
-def arrow_right_bbox(W, H):
-    """Bottom-right corner arrow (go to next screen)."""
-    return (W - ARROW_SIZE, H - ARROW_SIZE, W, H)
+# For drawing we map the arrows to the display corners.
+# Display is landscape 250×122; arrows drawn at the right edge, top and bottom corners.
+# Left  arrow (prev) → drawn at bottom-right of display (high Y in portrait = right side)
+# Right arrow (next) → drawn at top-right    of display (low  Y in portrait = left side)
+ARROW_DRAW_SIZE = 28   # px square for the drawn arrow box
+
+def arrow_left_draw(W, H):
+    """Draw position for the 'previous' arrow — bottom-right corner of display."""
+    return (W - ARROW_DRAW_SIZE, H - ARROW_DRAW_SIZE, W, H)
+
+def arrow_right_draw(W, H):
+    """Draw position for the 'next' arrow — top-right corner of display."""
+    return (W - ARROW_DRAW_SIZE, 0, W, ARROW_DRAW_SIZE)
+
+def arrow_left_hit(tx, ty):
+    """Return True if raw touch (tx,ty) hits the left/prev arrow."""
+    return (abs(tx - ARROW_LEFT_TX)  <= ARROW_HIT and
+            abs(ty - ARROW_LEFT_TY)  <= ARROW_HIT)
+
+def arrow_right_hit(tx, ty):
+    """Return True if raw touch (tx,ty) hits the right/next arrow."""
+    return (abs(tx - ARROW_RIGHT_TX) <= ARROW_HIT and
+            abs(ty - ARROW_RIGHT_TY) <= ARROW_HIT)
 
 def draw_arrow_left(draw, W, H, font_small):
-    x1, y1, x2, y2 = arrow_left_bbox(W, H)
+    x1, y1, x2, y2 = arrow_left_draw(W, H)
     draw.rectangle((x1, y1, x2, y2), outline=0, fill=255)
-    # Draw a simple left triangle
     cx = (x1 + x2) // 2
     cy = (y1 + y2) // 2
-    pts = [(cx + 8, cy - 8), (cx - 8, cy), (cx + 8, cy + 8)]
+    # Left-pointing triangle
+    pts = [(cx + 7, cy - 7), (cx - 7, cy), (cx + 7, cy + 7)]
     draw.polygon(pts, fill=0)
 
 def draw_arrow_right(draw, W, H, font_small):
-    x1, y1, x2, y2 = arrow_right_bbox(W, H)
+    x1, y1, x2, y2 = arrow_right_draw(W, H)
     draw.rectangle((x1, y1, x2, y2), outline=0, fill=255)
     cx = (x1 + x2) // 2
     cy = (y1 + y2) // 2
-    pts = [(cx - 8, cy - 8), (cx + 8, cy), (cx - 8, cy + 8)]
+    # Right-pointing triangle
+    pts = [(cx - 7, cy - 7), (cx + 7, cy), (cx - 7, cy + 7)]
     draw.polygon(pts, fill=0)
 
 def draw_page_indicator(draw, W, H, font_small):
-    """Tiny dots at the bottom centre to show current page."""
+    """Tiny dots along the right edge between the two arrows."""
     dot_r = 3
-    spacing = 12
-    total_w = (TOTAL_SCREENS - 1) * spacing
-    start_x = W // 2 - total_w // 2
-    y = H - ARROW_SIZE // 2
+    spacing = 10
+    # Place dots vertically centred on the right edge between the arrows
+    x = W - ARROW_DRAW_SIZE // 2
+    total_h = (TOTAL_SCREENS - 1) * spacing
+    start_y = H // 2 - total_h // 2
     for i in range(TOTAL_SCREENS):
-        cx = start_x + i * spacing
+        cy = start_y + i * spacing
         if i == current_screen:
-            draw.ellipse((cx - dot_r, y - dot_r, cx + dot_r, y + dot_r), fill=0)
+            draw.ellipse((x - dot_r, cy - dot_r, x + dot_r, cy + dot_r), fill=0)
         else:
-            draw.ellipse((cx - dot_r, y - dot_r, cx + dot_r, y + dot_r), outline=0, fill=255)
+            draw.ellipse((x - dot_r, cy - dot_r, x + dot_r, cy + dot_r), outline=0, fill=255)
 
 # -------------------- DRAW SCREENS --------------------
 def draw_button_screen(buttons):
-    """Draw a grid of buttons + navigation arrows."""
+    """Draw a grid of buttons + navigation arrows on the right edge."""
     W, H = epd.height, epd.width
     draw.rectangle((0, 0, W, H), fill=255)
+    # Buttons live in the left portion; right ARROW_DRAW_SIZE+2 px reserved for arrows
     for label, topic, x1, y1, x2, y2 in buttons:
-        draw.rectangle((x1, y1, x2, y2), outline=0)
-        draw.text((x1 + 10, y1 + 20), label, font=font, fill=0)
+        # Clamp button right edge away from arrow strip
+        x2c = min(x2, W - ARROW_DRAW_SIZE - 2)
+        draw.rectangle((x1, y1, x2c, y2), outline=0)
+        draw.text((x1 + 5, y1 + 5), label, font=font, fill=0)
     draw_arrow_left(draw, W, H, font_small)
     draw_arrow_right(draw, W, H, font_small)
     draw_page_indicator(draw, W, H, font_small)
@@ -182,9 +209,10 @@ def draw_status_screen():
     draw.rectangle((0, 0, W, 18), fill=0)
     draw.text((4, 1), "Home Assistant", font=font_small, fill=255)
 
-    # Draw up to 4 widgets in a 2×2 grid
-    col_w = W // 2
-    row_h = (H - 18 - ARROW_SIZE) // 2
+    # Draw up to 4 widgets in a 2×2 grid; right ARROW_DRAW_SIZE+2 px reserved for arrows
+    usable_w = W - ARROW_DRAW_SIZE - 2
+    col_w = usable_w // 2
+    row_h = (H - 18 - ARROW_DRAW_SIZE) // 2
     for idx, w in enumerate(WIDGETS[:4]):
         col = idx % 2
         row = idx // 2
@@ -259,20 +287,17 @@ try:
 
             logging.info(f"Touch: {x},{y}  screen={current_screen}")
 
-            # ---- Check arrow navigation first ----
-            ax1, ay1, ax2, ay2 = arrow_left_bbox(W, H)
-            bx1, by1, bx2, by2 = arrow_right_bbox(W, H)
-
-            if ax1 <= x <= ax2 and ay1 <= y <= ay2:
+            # ---- Check arrow navigation first (raw touch coords) ----
+            if arrow_left_hit(x, y):
                 current_screen = (current_screen - 1) % TOTAL_SCREENS
-                logging.info(f"→ screen {current_screen}")
+                logging.info(f"← prev screen {current_screen}")
                 draw_current_screen()
                 time.sleep(0.3)
                 continue
 
-            if bx1 <= x <= bx2 and by1 <= y <= by2:
+            if arrow_right_hit(x, y):
                 current_screen = (current_screen + 1) % TOTAL_SCREENS
-                logging.info(f"→ screen {current_screen}")
+                logging.info(f"→ next screen {current_screen}")
                 draw_current_screen()
                 time.sleep(0.3)
                 continue
