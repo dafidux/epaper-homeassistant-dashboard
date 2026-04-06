@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 flag_t = 1
 
 # -------------------- MQTT --------------------
-MQTT_BROKER = "HOMEASSISTANT_IP_ADDRESS."
+MQTT_BROKER = "HOMEASSISTANT_IP_ADDRESS"
 MQTT_PORT = 1883
 MQTT_USER = "YOUR_USERNAME"
 MQTT_PASS = "YOUR_PASSWORD"
@@ -42,6 +42,16 @@ def pthread_irq():
             GT_Dev.Touch = 1
         else:
             GT_Dev.Touch = 0
+
+# -------------------- BUTTONS --------------------
+# Single source of truth: all button positions defined here.
+# draw_buttons() and touch detection both use this list.
+BUTTONS = [
+    ("BUTTON_A", "homeassistant/epaper/button1",  10,  10, 120,  60),
+    ("BUTTON_B", "homeassistant/epaper/button2", 130,  10, 240,  60),
+    ("BUTTON_C", "homeassistant/epaper/button3",  10,  70, 120, 120),
+    ("BUTTON_D", "homeassistant/epaper/button4", 130,  70, 240, 120),
+]
 
 # -------------------- MAIN --------------------
 try:
@@ -75,21 +85,14 @@ try:
     def draw_buttons():
         draw.rectangle((0, 0, epd.height, epd.width), fill=255)
 
-        # 4 buttons
-        buttons = [
-            ("BUTTON_A", 10, 10, 120, 60),
-            ("BUTTON_B", 120, 10, 230, 60),
-            ("BUTTON_C", 10, 70, 120, 120),
-            ("BUTTON_D", 120, 70, 230, 120),
-        ]
-
-        for text, x1, y1, x2, y2 in buttons:
+        for label, topic, x1, y1, x2, y2 in BUTTONS:
             draw.rectangle((x1, y1, x2, y2), outline=0)
-            draw.text((x1 + 10, y1 + 20), text, font=font, fill=0)
+            draw.text((x1 + 10, y1 + 20), label, font=font, fill=0)
 
         epd.display(epd.getbuffer(image))
 
     draw_buttons()
+
     # -------------------- MAIN LOOP --------------------
     while True:
         gt.GT_Scan(GT_Dev, GT_Old)
@@ -105,29 +108,15 @@ try:
             x = GT_Dev.X[0]
             y = GT_Dev.Y[0]
 
-            print(f"Touch: {x},{y}")
+            logging.info(f"Touch: {x},{y}")
 
             # ---------------- BUTTON DETECTION ----------------
-
-            # Button 1
-            if 20 < x < 60  and  160 < y < 200:
-                print("A PRESSED")
-                mqttc.publish("homeassistant/epaper/button1", "PRESSED")
-
-            # Button 2
-            elif 20 < x < 60 and 60 < y < 100:
-                print("B PRESSED")
-                mqttc.publish("homeassistant/epaper/button2", "PRESSED")
-
-            # Button 3
-            elif 80 < x < 120 and 160 < y < 200:
-                print("C PRESSED")
-                mqttc.publish("homeassistant/epaper/button3", "PRESSED")
-
-            # Button 4
-            elif 80 < x < 120 and 60 < y < 100:
-                print("D PRESSED")
-                mqttc.publish("homeassistant/epaper/button4", "PRESSED")
+            # Checks touch coords against the same BUTTONS list used for drawing.
+            for label, topic, x1, y1, x2, y2 in BUTTONS:
+                if x1 < x < x2 and y1 < y < y2:
+                    logging.info(f"{label} PRESSED")
+                    mqttc.publish(topic, "PRESSED")
+                    break
 
             time.sleep(0.3)
 
@@ -137,6 +126,8 @@ try:
 except KeyboardInterrupt:
     logging.info("Exiting...")
     flag_t = 0
+    mqttc.loop_stop()       # stop the MQTT background thread
+    mqttc.disconnect()      # cleanly disconnect from broker
     epd.sleep()
     time.sleep(1)
     t.join()
