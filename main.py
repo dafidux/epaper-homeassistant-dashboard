@@ -3,6 +3,7 @@
 
 import sys
 import os
+import json
 import time
 import logging
 import threading
@@ -23,12 +24,35 @@ from TP_lib import epd2in13_V4
 logging.basicConfig(level=logging.INFO)
 flag_t = 1
 
-# -------------------- MQTT --------------------
-MQTT_BROKER = "HOMEASSISTANT_IP_ADDRESS"
-MQTT_PORT = 1883
-MQTT_USER = "YOUR_USERNAME"
-MQTT_PASS = "YOUR_PASSWORD"
+# -------------------- LOAD .env --------------------
+def load_env(filepath=".env"):
+    config = {}
+    with open(filepath) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                config[key.strip()] = value.strip()
+    return config
 
+env = load_env(".env")
+MQTT_BROKER = env["MQTT_BROKER"]
+MQTT_PORT   = int(env["MQTT_PORT"])
+MQTT_USER   = env["MQTT_USER"]
+MQTT_PASS   = env["MQTT_PASS"]
+
+# -------------------- LOAD buttons.json --------------------
+def load_buttons(filepath="buttons.json"):
+    with open(filepath) as f:
+        data = json.load(f)
+    return [
+        (b["label"], b["topic"], b["x1"], b["y1"], b["x2"], b["y2"])
+        for b in data["buttons"]
+    ]
+
+BUTTONS = load_buttons("buttons.json")
+
+# -------------------- MQTT --------------------
 mqttc = mqtt.Client(client_id="epaper_dashboard")
 mqttc.username_pw_set(MQTT_USER, MQTT_PASS)
 mqttc.connect(MQTT_BROKER, MQTT_PORT, 60)
@@ -43,16 +67,6 @@ def pthread_irq():
         else:
             GT_Dev.Touch = 0
 
-# -------------------- BUTTONS --------------------
-# Single source of truth: all button positions defined here.
-# draw_buttons() and touch detection both use this list.
-BUTTONS = [
-    ("BUTTON_A", "homeassistant/epaper/button1",  10,  10, 120,  60),
-    ("BUTTON_B", "homeassistant/epaper/button2", 130,  10, 240,  60),
-    ("BUTTON_C", "homeassistant/epaper/button3",  10,  70, 120, 120),
-    ("BUTTON_D", "homeassistant/epaper/button4", 130,  70, 240, 120),
-]
-
 # -------------------- MAIN --------------------
 try:
     logging.info("Starting ePaper dashboard")
@@ -66,15 +80,12 @@ try:
     gt.GT_Init()
     epd.Clear(0xFF)
 
-    # start touch thread
     t = threading.Thread(target=pthread_irq)
     t.daemon = True
     t.start()
 
-    # fonts
     font = ImageFont.truetype(os.path.join(fontdir, 'Font.ttc'), 18)
 
-    # create blank screen
     image = Image.new('1', (epd.height, epd.width), 255)
     draw = ImageDraw.Draw(image)
 
@@ -84,11 +95,9 @@ try:
     # -------------------- DRAW BUTTONS --------------------
     def draw_buttons():
         draw.rectangle((0, 0, epd.height, epd.width), fill=255)
-
         for label, topic, x1, y1, x2, y2 in BUTTONS:
             draw.rectangle((x1, y1, x2, y2), outline=0)
             draw.text((x1 + 10, y1 + 20), label, font=font, fill=0)
-
         epd.display(epd.getbuffer(image))
 
     draw_buttons()
@@ -110,8 +119,6 @@ try:
 
             logging.info(f"Touch: {x},{y}")
 
-            # ---------------- BUTTON DETECTION ----------------
-            # Checks touch coords against the same BUTTONS list used for drawing.
             for label, topic, x1, y1, x2, y2 in BUTTONS:
                 if x1 < x < x2 and y1 < y < y2:
                     logging.info(f"{label} PRESSED")
@@ -126,8 +133,8 @@ try:
 except KeyboardInterrupt:
     logging.info("Exiting...")
     flag_t = 0
-    mqttc.loop_stop()       # stop the MQTT background thread
-    mqttc.disconnect()      # cleanly disconnect from broker
+    mqttc.loop_stop()
+    mqttc.disconnect()
     epd.sleep()
     time.sleep(1)
     t.join()
