@@ -1,0 +1,8 @@
+{
+  "widgets": [
+    {"label": "Solar Today",  "mqtt_topic": "sensor/solar_today",  "unit": "kWh"},
+    {"label": "Solar Power",  "mqtt_topic": "sensor/solar_power",  "unit": "W"},
+    {"label": "Grid Import",  "mqtt_topic": "sensor/grid_import",  "unit": "kWh"},
+    {"label": "Home Usage",   "mqtt_topic": "sensor/home_usage",   "unit": "W"}
+  ]
+}
