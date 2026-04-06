@@ -111,22 +111,22 @@ try:
 
             # Button 1
             if 20 < x < 60  and  160 < y < 200:
-                print("Light ON")
+                print("A PRESSED")
                 mqttc.publish("homeassistant/epaper/button1", "PRESSED")
 
             # Button 2
             elif 20 < x < 60 and 60 < y < 100:
-                print("Light OFF")
+                print("B PRESSED")
                 mqttc.publish("homeassistant/epaper/button2", "PRESSED")
 
             # Button 3
             elif 80 < x < 120 and 160 < y < 200:
-                print("Fan toggle")
+                print("C PRESSED")
                 mqttc.publish("homeassistant/epaper/button3", "PRESSED")
 
             # Button 4
             elif 80 < x < 120 and 60 < y < 100:
-                print("Night scene")
+                print("D PRESSED")
                 mqttc.publish("homeassistant/epaper/button4", "PRESSED")
 
             time.sleep(0.3)
