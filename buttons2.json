@@ -1,8 +1,8 @@
 {
   "buttons": [
     {"label": "Button 5", "topic": "homeassistant/epaper/button5"},
-    {"label": "Button 6", "topic": "homeassistant/epaper/button6"},
-    {"label": "Button 7", "topic": "homeassistant/epaper/button7"},
+    {"label": "Button 6", "topic": "homeassistant/epaper/button7"},
+    {"label": "Button 7", "topic": "homeassistant/epaper/button6"},
     {"label": "Button 8", "topic": "homeassistant/epaper/button8"}
   ]
 }

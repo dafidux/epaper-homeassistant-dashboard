@@ -1,8 +1,8 @@
 {
   "buttons": [
     {"label": "Dimmer",    "topic": "homeassistant/epaper/button1"},
-    {"label": "Feller",   "topic": "homeassistant/epaper/button2"},
-    {"label": "Marantz",  "topic": "homeassistant/epaper/button3"},
+    {"label": "Feller",   "topic": "homeassistant/epaper/button3"},
+    {"label": "Marantz",  "topic": "homeassistant/epaper/button2"},
     {"label": "Sprinkler", "topic": "homeassistant/epaper/button4"}
   ]
 }
