@@ -1,9 +1,8 @@
 {
-  "_comment": "x1/y1/x2/y2 are raw touch sensor coordinates, copied exactly from original working button detection code.",
   "buttons": [
-    {"label": "Light ON",    "topic": "homeassistant/epaper/button1", "x1": 20, "y1": 160, "x2": 60, "y2": 200},
-    {"label": "Light OFF",   "topic": "homeassistant/epaper/button2", "x1": 20, "y1":  60, "x2": 60, "y2": 100},
-    {"label": "Fan toggle",  "topic": "homeassistant/epaper/button3", "x1": 80, "y1": 160, "x2": 120, "y2": 200},
-    {"label": "Night scene", "topic": "homeassistant/epaper/button4", "x1": 80, "y1":  60, "x2": 120, "y2": 100}
+    {"label": "Dimmer",    "topic": "homeassistant/epaper/button1"},
+    {"label": "Feller",   "topic": "homeassistant/epaper/button2"},
+    {"label": "Marantz",  "topic": "homeassistant/epaper/button3"},
+    {"label": "Sprinkler", "topic": "homeassistant/epaper/button4"}
   ]
 }

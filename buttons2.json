@@ -1,9 +1,8 @@
 {
-  "_comment": "x1/y1/x2/y2 are raw touch sensor coordinates. Same system as buttons.json — x: 20-60 or 80-120, y: 60-100 or 160-200.",
   "buttons": [
-    {"label": "Fan",     "topic": "homeassistant/epaper/button5", "x1": 20, "y1": 160, "x2":  60, "y2": 200},
-    {"label": "Alarm",   "topic": "homeassistant/epaper/button6", "x1": 20, "y1":  60, "x2":  60, "y2": 100},
-    {"label": "Gate",    "topic": "homeassistant/epaper/button7", "x1": 80, "y1": 160, "x2": 120, "y2": 200},
-    {"label": "Scene 1", "topic": "homeassistant/epaper/button8", "x1": 80, "y1":  60, "x2": 120, "y2": 100}
+    {"label": "Button 5", "topic": "homeassistant/epaper/button5"},
+    {"label": "Button 6", "topic": "homeassistant/epaper/button6"},
+    {"label": "Button 7", "topic": "homeassistant/epaper/button7"},
+    {"label": "Button 8", "topic": "homeassistant/epaper/button8"}
   ]
 }
