@@ -59,15 +59,15 @@ BUTTONS_PAGE2 = load_buttons("buttons2.json")  # up to 4 entries -> slots 0-3
 # -------------------- HARDCODED TOUCH REGIONS --------------------
 # Raw touch sensor coordinates, exactly from the original working code.
 # Format: (x1, x2, y1, y2)
-#   Slot 0 -> Button 1  (x: 20-60,  y: 160-200)  bottom-left
-#   Slot 1 -> Button 2  (x: 20-60,  y:  60-100)  top-left
-#   Slot 2 -> Button 3  (x: 80-120, y: 160-200)  bottom-right
-#   Slot 3 -> Button 4  (x: 80-120, y:  60-100)  top-right
+#   Slot 0 -> Button 1  (x: 20-60,  y:  60-100)  top-left
+#   Slot 1 -> Button 2  (x: 80-120, y:  60-100)  top-right
+#   Slot 2 -> Button 3  (x: 20-60,  y: 160-200)  bottom-left
+#   Slot 3 -> Button 4  (x: 80-120, y: 160-200)  bottom-right
 TOUCH_REGIONS = [
-    (20,  60, 160, 200),
-    (20,  60,  60, 100),
-    (80, 120, 160, 200),
-    (80, 120,  60, 100),
+    (20,  60,  60, 100),   # slot 0 top-left
+    (80, 120,  60, 100),   # slot 1 top-right
+    (20,  60, 160, 200),   # slot 2 bottom-left
+    (80, 120, 160, 200),   # slot 3 bottom-right
 ]
 
 def button_hit(slot, tx, ty):
@@ -98,10 +98,10 @@ BTN_GAP    =   8
 
 VISUAL_POSITIONS = [
     # (x1, y1, x2, y2) in display pixels
-    (BTN_MARGIN,                           52, BTN_MARGIN + BTN_W,                           52 + BTN_H),  # slot 0
-    (BTN_MARGIN,                            4, BTN_MARGIN + BTN_W,                            4 + BTN_H),  # slot 1
-    (BTN_MARGIN + BTN_W + BTN_GAP,         52, BTN_MARGIN + BTN_W + BTN_GAP + BTN_W,         52 + BTN_H),  # slot 2
-    (BTN_MARGIN + BTN_W + BTN_GAP,          4, BTN_MARGIN + BTN_W + BTN_GAP + BTN_W,          4 + BTN_H),  # slot 3
+    (BTN_MARGIN,                            4, BTN_MARGIN + BTN_W,                            4 + BTN_H),  # slot 0 top-left
+    (BTN_MARGIN + BTN_W + BTN_GAP,          4, BTN_MARGIN + BTN_W + BTN_GAP + BTN_W,          4 + BTN_H),  # slot 1 top-right
+    (BTN_MARGIN,                           52, BTN_MARGIN + BTN_W,                           52 + BTN_H),  # slot 2 bottom-left
+    (BTN_MARGIN + BTN_W + BTN_GAP,         52, BTN_MARGIN + BTN_W + BTN_GAP + BTN_W,         52 + BTN_H),  # slot 3 bottom-right
 ]
 
 # -------------------- HARDCODED ARROW VISUAL POSITIONS --------------------
